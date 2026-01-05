@@ -43,28 +43,35 @@ if total_matches == 0:
     st.stop()
 
 # ============================
-# KPIs
+# KPIs (ACCURATE CALCULATION)
 # ============================
-home_wins = filtered[filtered["match_outcome"] == "H"].shape[0] / total_matches * 100
-away_wins = filtered[filtered["match_outcome"] == "A"].shape[0] / total_matches * 100
-draws = filtered[filtered["match_outcome"] == "D"].shape[0] / total_matches * 100
+outcome_counts = filtered["match_outcome"].value_counts()
+
+home_wins_count = outcome_counts.get("H", 0)
+away_wins_count = outcome_counts.get("A", 0)
+draws_count = outcome_counts.get("D", 0)
+
+home_wins_pct = (home_wins_count / total_matches) * 100
+away_wins_pct = (away_wins_count / total_matches) * 100
+draws_pct = (draws_count / total_matches) * 100
+
 avg_goals = filtered["total_goals"].mean()
 
 team_goals = pd.concat([
     filtered[["home_team","fulltime_home"]].rename(columns={"home_team":"team","fulltime_home":"goals"}),
     filtered[["away_team","fulltime_away"]].rename(columns={"away_team":"team","fulltime_away":"goals"})
 ]).groupby("team")["goals"].sum().sort_values(ascending=False)
+
 top_team = team_goals.index[0]
 
 kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
 kpi1.metric("Total Matches", total_matches)
 kpi2.metric("Average Goals", f"{avg_goals:.2f}")
-kpi3.metric("Home Win %", f"{home_wins:.1f}%")
-kpi4.metric("Away Win %", f"{away_wins:.1f}%")
-kpi5.metric("Draw %", f"{draws:.1f}%")
+kpi3.metric("Home Win %", f"{home_wins_pct:.1f}%")
+kpi4.metric("Away Win %", f"{away_wins_pct:.1f}%")
+kpi5.metric("Draw %", f"{draws_pct:.1f}%")
 kpi6.metric("Top Scoring Team", top_team)
 
-st.markdown("---")
 
 # ============================
 # 1. Goals per Match
